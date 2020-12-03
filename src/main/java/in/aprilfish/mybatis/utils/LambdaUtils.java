@@ -2,46 +2,75 @@ package in.aprilfish.mybatis.utils;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LambdaUtils {
 
-	/**
-	 * 根据方法引用获取字段名
-	 * @param func 方法引用
-	 * @param <T> 入参类型
-	 * @param <R> 返回值类型
-	 */
-	public static <T, R> String getProperty(SFunction<T, R> func) {
-		SerializedLambda serializedLambda = doSFunction(func);
-		String methodName = serializedLambda.getImplMethodName();
+    private static final Map<Class<?>, SerializedLambda> LAMBDA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ConcurrentHashMap<String, String>> COLUMN_CACHE = new HashMap<>();
 
-		String fieldName = methodName.substring(3).toLowerCase();
-		System.out.println(fieldName);
+    /**
+     * 根据方法引用获取字段名
+     *
+     * @param func 方法引用
+     * @param <T>  入参类型
+     * @param <R>  返回值类型
+     */
+    public static <T, R> String getProperty(SFunction<T, R> func) {
+        SerializedLambda serializedLambda = doSFunction(func);
 
-		return fieldName;
-	}
+        ConcurrentHashMap<String, String> columnMap = COLUMN_CACHE.get(serializedLambda.getImplClass());
+        if (columnMap == null) {
+            synchronized (LambdaUtils.class) {
+                if (columnMap == null) {
+                    columnMap = new ConcurrentHashMap<>();
+                    COLUMN_CACHE.put(serializedLambda.getImplClass(), columnMap);
+                }
+            }
+        }
 
-	/**
-	 * 通过反射调用writeReplace，获取SerializedLambda类
-	 * @param func 方法引用
-	 * @param <T> 入参类型
-	 * @param <R> 返回值类型
-	 */
-	public static <T, R> SerializedLambda doSFunction(SFunction<T, R> func) {
-		try {
-			// 直接调用writeReplace
-			Method writeReplace;
-			writeReplace = func.getClass().getDeclaredMethod("writeReplace");
+        String methodName = serializedLambda.getImplMethodName();
+        String fieldName = columnMap.get(methodName);
+        if (fieldName == null) {
+            fieldName = methodName.substring(3).toLowerCase();
+            columnMap.put(methodName, fieldName);
+        }
 
-			writeReplace.setAccessible(true);
-			//反射调用
-			Object sl = writeReplace.invoke(func);
-			SerializedLambda serializedLambda = (SerializedLambda) sl;
-			return serializedLambda;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
-		}
-	}
+        return fieldName;
+    }
+
+    /**
+     * 通过反射调用writeReplace，获取SerializedLambda类
+     *
+     * @param func 方法引用
+     * @param <T>  入参类型
+     * @param <R>  返回值类型
+     */
+    public static <T, R> SerializedLambda doSFunction(SFunction<T, R> func) {
+        SerializedLambda serializedLambda = LAMBDA_CACHE.get(func.getClass());
+        if (serializedLambda != null) {
+            return serializedLambda;
+        }
+
+        try {
+            // 直接调用writeReplace
+            Method writeReplace;
+            writeReplace = func.getClass().getDeclaredMethod("writeReplace");
+
+            writeReplace.setAccessible(true);
+            //反射调用
+            Object sl = writeReplace.invoke(func);
+            serializedLambda = (SerializedLambda) sl;
+
+            LAMBDA_CACHE.put(func.getClass(), serializedLambda);
+
+            return serializedLambda;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 
 }
