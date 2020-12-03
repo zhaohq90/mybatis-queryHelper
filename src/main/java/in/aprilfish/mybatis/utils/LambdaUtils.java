@@ -34,7 +34,8 @@ public class LambdaUtils {
         String methodName = serializedLambda.getImplMethodName();
         String fieldName = columnMap.get(methodName);
         if (fieldName == null) {
-            fieldName = methodName.substring(3).toLowerCase();
+            fieldName = methodName.substring(3);
+            fieldName = toLowerCaseFirstOne(fieldName);
             columnMap.put(methodName, fieldName);
         }
 
@@ -71,6 +72,14 @@ public class LambdaUtils {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    //首字母转小写
+    public static String toLowerCaseFirstOne(String s) {
+        if (Character.isLowerCase(s.charAt(0)))
+            return s;
+        else
+            return (new StringBuilder()).append(Character.toLowerCase(s.charAt(0))).append(s.substring(1)).toString();
     }
 
 }

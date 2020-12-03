@@ -29,8 +29,7 @@ public class LambdaQuery extends Example {
 		}
 
 		String property = LambdaUtils.getProperty(func);
-		//todo
-		String column = property;
+		String column = this.HumpToUnderline(property);
 
 		FieldPath<LambdaQuery> fieldPath = new FieldPath<>(this, criteria, property, column);
 
@@ -50,6 +49,21 @@ public class LambdaQuery extends Example {
 		criteria = super.or();
 
 		return criteria;
+	}
+
+	private String HumpToUnderline(String para){
+		StringBuilder sb=new StringBuilder(para);
+		int temp=0;//定位
+		if (!para.contains("_")) {
+			for(int i=0;i<para.length();i++){
+				if(Character.isUpperCase(para.charAt(i))){
+					sb.insert(i+temp, "_");
+					temp+=1;
+				}
+			}
+		}
+
+		return sb.toString().toLowerCase();
 	}
 
 }
