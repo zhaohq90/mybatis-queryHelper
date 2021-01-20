@@ -5,9 +5,14 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class LambdaUtils {
 
+    private LambdaUtils(){}
+
+    private static final Pattern GET_PATTERN = Pattern.compile("^get[A-Z].*");
+    private static final Pattern IS_PATTERN  = Pattern.compile("^is[A-Z].*");
     private static final Map<Class<?>, SerializedLambda> LAMBDA_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, ConcurrentHashMap<String, String>> COLUMN_CACHE = new HashMap<>();
 
@@ -34,7 +39,15 @@ public class LambdaUtils {
         String methodName = serializedLambda.getImplMethodName();
         String fieldName = columnMap.get(methodName);
         if (fieldName == null) {
-            fieldName = methodName.substring(3);
+            if (GET_PATTERN.matcher(methodName).matches()) {
+                fieldName = methodName.substring(3);
+            } else if (IS_PATTERN.matcher(methodName).matches()) {
+                fieldName = methodName.substring(2);
+            }
+            if(fieldName==null || fieldName.length()==0){
+                return fieldName;
+            }
+
             fieldName = toLowerCaseFirstOne(fieldName);
             columnMap.put(methodName, fieldName);
         }
