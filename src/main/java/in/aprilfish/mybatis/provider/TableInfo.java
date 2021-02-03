@@ -1,9 +1,9 @@
 package in.aprilfish.mybatis.provider;
 
-import in.aprilfish.mybatis.mapper.BaseMapper;
+import in.aprilfish.mybatis.mapper.CommonMapper;
 import in.aprilfish.mybatis.util.CollectionUtils;
 import in.aprilfish.mybatis.util.ReflectionUtils;
-import in.aprilfish.mybatis.util.StringUtils;
+import in.aprilfish.mybatis.util.StrKit;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 
@@ -65,7 +65,7 @@ public class TableInfo {
      */
     public String getPrimaryKeyWhere() {
         String pk = this.primaryKeyColumn;
-        return pk + " = #{" + StringUtils.removeDelimiter(pk) + "}";
+        return pk + " = #{" + StrKit.removeDelimiter(pk) + "}";
     }
 
     /**
@@ -97,7 +97,7 @@ public class TableInfo {
         return Stream.of(mapperType.getGenericInterfaces())
                 .filter(ParameterizedType.class::isInstance)
                 .map(ParameterizedType.class::cast)
-                .filter(type -> type.getRawType() == BaseMapper.class)
+                .filter(type -> type.getRawType() == CommonMapper.class)
                 .findFirst()
                 .map(type -> type.getActualTypeArguments()[1])
                 .filter(Class.class::isInstance).map(Class.class::cast)
@@ -113,7 +113,7 @@ public class TableInfo {
      */
     public static String tableName(Class<?> entityType) {
         Table table = entityType.getAnnotation(Table.class);
-        return table == null ? TABLE_PREFIX + StringUtils.camel2Underscore(entityType.getSimpleName()) : table.name();
+        return table == null ? TABLE_PREFIX + StrKit.camel2Underscore(entityType.getSimpleName()) : table.name();
     }
 
     /**
@@ -204,7 +204,7 @@ public class TableInfo {
      * @return  字段对应的column
      */
     public static String columnName(Field field) {
-        return "`" + StringUtils.camel2Underscore(field.getName()) + "`";
+        return "`" + StrKit.camel2Underscore(field.getName()) + "`";
     }
 
     /**

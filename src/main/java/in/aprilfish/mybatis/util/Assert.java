@@ -14,7 +14,7 @@ public class Assert {
     }
 
     public static void notEmpty(String string, String message) {
-        if (StringUtils.isEmpty(string)) {
+        if (StrKit.isEmpty(string)) {
             throw new IllegalArgumentException(message);
         }
     }

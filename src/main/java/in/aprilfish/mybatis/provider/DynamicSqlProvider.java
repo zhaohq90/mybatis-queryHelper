@@ -2,7 +2,7 @@ package in.aprilfish.mybatis.provider;
 
 import in.aprilfish.mybatis.util.PlaceholderResolver;
 import in.aprilfish.mybatis.util.ReflectionUtils;
-import in.aprilfish.mybatis.util.StringUtils;
+import in.aprilfish.mybatis.util.StrKit;
 import org.apache.ibatis.builder.annotation.ProviderContext;
 import org.apache.ibatis.jdbc.SQL;
 
@@ -97,8 +97,6 @@ public class DynamicSqlProvider {
     }
 
     /**
-     * sql
-     *
      * @param orderBy 排序字段
      * @param context context
      * @return sql
@@ -108,15 +106,13 @@ public class DynamicSqlProvider {
         SQL sql = new SQL()
                 .SELECT(table.getSelectColumns())
                 .FROM(table.getTableName());
-        if (StringUtils.isEmpty(orderBy)) {
+        if (StrKit.isEmpty(orderBy)) {
             orderBy = table.getPrimaryKeyColumn() + " DESC";
         }
         return sql.ORDER_BY(orderBy).toString();
     }
 
     /**
-     * sql
-     *
      * @param criteria entity 条件
      * @param context  context
      * @return sql
@@ -133,8 +129,6 @@ public class DynamicSqlProvider {
     }
 
     /**
-     * sql
-     *
      * @param criteria entity 条件
      * @param context  context
      * @return sql
@@ -148,8 +142,6 @@ public class DynamicSqlProvider {
     }
 
     /**
-     * sql
-     *
      * @param criteria entity 条件
      * @param context  context
      * @return sql

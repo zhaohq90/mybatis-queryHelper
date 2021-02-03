@@ -6,7 +6,7 @@ package in.aprilfish.mybatis.util;
  * @author hml
  * @date 2018/6/14 下午3:01
  */
-public class StringUtils {
+public class StrKit {
 
     /**
      * 判断字符串是否为空且长度为0
@@ -56,6 +56,21 @@ public class StringUtils {
             out.append(c);
         }
         return out.toString();
+    }
+
+    public static String humpToUnderline(String para){
+        StringBuilder sb=new StringBuilder(para);
+        int temp=0;//定位
+        if (!para.contains("_")) {
+            for(int i=0;i<para.length();i++){
+                if(Character.isUpperCase(para.charAt(i))){
+                    sb.insert(i+temp, "_");
+                    temp+=1;
+                }
+            }
+        }
+
+        return sb.toString().toLowerCase();
     }
 
     public static String removeDelimiter(String column){

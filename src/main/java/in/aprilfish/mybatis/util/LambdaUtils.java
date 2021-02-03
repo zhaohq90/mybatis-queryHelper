@@ -1,4 +1,4 @@
-package in.aprilfish.mybatis.utils;
+package in.aprilfish.mybatis.util;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;

@@ -1,4 +1,4 @@
-package in.aprilfish.mybatis.query;
+package in.aprilfish.mybatis.example;
 
 import java.util.ArrayList;
 import java.util.List;

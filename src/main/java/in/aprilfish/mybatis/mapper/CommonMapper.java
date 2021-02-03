@@ -1,5 +1,6 @@
 package in.aprilfish.mybatis.mapper;
 
+import in.aprilfish.mybatis.example.Example;
 import in.aprilfish.mybatis.provider.*;
 import org.apache.ibatis.annotations.*;
 
@@ -147,5 +148,7 @@ public interface CommonMapper<I, E> {
      */
     @SelectProvider(type = DynamicSqlProvider.class, method = "countByCriteria")
     long countByCriteria(E criteria);
+
+    List<E> selectByExample(Example example);
 
 }
