@@ -59,8 +59,8 @@ public interface CommonMapper<I, E> {
      * @param entity  实体对象
      * @return        影响条数
      */
-    @UpdateProvider(type = DynamicSqlProvider.class, method = "updateByPrimaryKeySelective")
-    int updateByPrimaryKeySelective(E entity);
+    @UpdateProvider(type = DynamicSqlProvider.class, method = "updateSelective")
+    int updateSelective(E entity);
 
     /**
      * 根据主键id删除
@@ -129,7 +129,7 @@ public interface CommonMapper<I, E> {
      * @param criteria  实体条件
      * @return          实体对象
      */
-    @SelectProvider(type = DynamicSqlProvider.class, method = "selectOneByCriteria")
+    @SelectProvider(type = DynamicSqlProvider.class, method = "selectByCriteria")
     E selectOneByCriteria(E criteria);
 
     /**

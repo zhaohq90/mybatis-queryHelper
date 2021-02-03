@@ -157,7 +157,7 @@ public class DynamicSqlProvider {
                 .toString();
     }
 
-    public String update(ProviderContext context) {
+    public String updateByPrimaryKey(ProviderContext context) {
         TableInfo table = tableInfo(context);
 
         return new SQL()
@@ -181,7 +181,7 @@ public class DynamicSqlProvider {
                 .toString();
     }
 
-    public String fakeDelete(ProviderContext context) {
+    public String fakeDeleteByPrimaryKey(ProviderContext context) {
         TableInfo table = tableInfo(context);
 
         return new SQL()
@@ -191,7 +191,7 @@ public class DynamicSqlProvider {
                 .toString();
     }
 
-    public String delete(ProviderContext context) {
+    public String deleteByPrimaryKey(ProviderContext context) {
         TableInfo table = tableInfo(context);
 
         return new SQL()
