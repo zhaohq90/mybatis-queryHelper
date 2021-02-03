@@ -98,20 +98,20 @@ public class LambdaQuery extends Example {
         return addCondition(condition, func, SqlKeyword.LE, val);
     }
 
-    public <T, R> LambdaQuery isNull(SFunction<T, R> func, Object val) {
-        return isNull(true, func, val);
+    public <T, R> LambdaQuery isNull(SFunction<T, R> func) {
+        return isNull(true, func);
     }
 
-    public <T, R> LambdaQuery isNull(boolean condition, SFunction<T, R> func, Object val) {
-        return addCondition(condition, func, SqlKeyword.IS_NULL, val);
+    public <T, R> LambdaQuery isNull(boolean condition, SFunction<T, R> func) {
+        return addCondition(condition, func, SqlKeyword.IS_NULL);
     }
 
-    public <T, R> LambdaQuery isNotNull(SFunction<T, R> func, Object val) {
-        return isNotNull(true, func, val);
+    public <T, R> LambdaQuery isNotNull(SFunction<T, R> func) {
+        return isNotNull(true, func);
     }
 
-    public <T, R> LambdaQuery isNotNull(boolean condition, SFunction<T, R> func, Object val) {
-        return addCondition(condition, func, SqlKeyword.IS_NOT_NULL, val);
+    public <T, R> LambdaQuery isNotNull(boolean condition, SFunction<T, R> func) {
+        return addCondition(condition, func, SqlKeyword.IS_NOT_NULL);
     }
 
     private <T, R> LambdaQuery addCondition(boolean condition, SFunction<T, R> func, SqlKeyword keyword, Object... vals) {
