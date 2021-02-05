@@ -56,6 +56,8 @@ public class TableInfo {
      */
     private String[] selectColumns;
 
+    private OpEntity opEntity;
+
     private TableInfo() {}
 
     /**
@@ -76,14 +78,15 @@ public class TableInfo {
      */
     public static TableInfo of(Class<?> mapperType) {
         Class<?> entityClass = entityType(mapperType);
-        // 获取不含有@NoColumn注解的fields
-        Field[] fields = excludeNoColumnField(entityClass);
+        // 获取不含有@Transient注解的fields
+        Field[] fields = excludeTransientField(entityClass);
         TableInfo tableInfo = new TableInfo();
         tableInfo.fields = fields;
         tableInfo.tableName = tableName(entityClass);
         tableInfo.primaryKeyColumn =  primaryKeyColumn(fields);
         tableInfo.columns = columns(fields);
         tableInfo.selectColumns = selectColumns(fields);
+        tableInfo.opEntity = opEntity(entityClass.getPackage().getName(), entityClass.getSimpleName());
         return tableInfo;
     }
 
@@ -122,11 +125,11 @@ public class TableInfo {
      * @param entityClass 实体类型
      * @return 不包含@Transient注解的fields
      */
-    public static Field[] excludeNoColumnField(Class<?> entityClass) {
+    public static Field[] excludeTransientField(Class<?> entityClass) {
         Field[] allFields = ReflectionUtils.getFields(entityClass);
         List<String> excludeColumns = getClassExcludeColumns(entityClass);
         return Stream.of(allFields)
-                //过滤掉类上指定的@NoCloumn注解的字段和字段上@NoColumn注解或者是静态的field
+                //过滤掉类上指定的@Transient注解的字段和字段上@Transient注解或者是静态的field
                 .filter(field -> !CollectionUtils.contains(excludeColumns, field.getName())
                         && (!field.isAnnotationPresent(Transient.class) && !Modifier.isStatic(field.getModifiers())))
                 .toArray(Field[]::new);
@@ -161,6 +164,19 @@ public class TableInfo {
      */
     public static String[] selectColumns(Field[] fields) {
         return Stream.of(fields).map(TableInfo::selectColumnName).toArray(String[]::new);
+    }
+
+    public static OpEntity opEntity(String packageName,String simpleName){
+        String className=packageName+".Op"+simpleName;
+        try {
+            System.out.println("build OpEntity");
+            Class clazz= Class.forName(className);
+            return (OpEntity)clazz.newInstance();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
@@ -245,6 +261,20 @@ public class TableInfo {
 
     public String[] getSelectColumns() {
         return selectColumns;
+    }
+
+    public boolean isPrimaryKey(Field field){
+        return this.primaryKeyColumn.equals(TableInfo.columnName(field));
+    }
+
+    public boolean isNotNull(Object entity, Field field){
+        if(opEntity==null){
+            return ReflectionUtils.getFieldValue(field, entity)!=null;
+        }
+
+        opEntity.setEntity(entity);
+
+        return opEntity.isNotNull(field.getName());
     }
 
 }

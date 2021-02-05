@@ -175,7 +175,8 @@ public class DynamicSqlProvider {
         return new SQL()
                 .UPDATE(table.getTableName())
                 .SET(Stream.of(table.getFields())
-                        .filter(field -> ReflectionUtils.getFieldValue(field, entity) != null && !table.getPrimaryKeyColumn().equals(TableInfo.columnName(field)))
+                        //.filter(field -> ReflectionUtils.getFieldValue(field, entity) != null && !table.getPrimaryKeyColumn().equals(TableInfo.columnName(field)))
+                        .filter(field -> table.isNotNull(entity,field) && !table.isPrimaryKey(field))
                         .map(TableInfo::assignParameter).toArray(String[]::new))
                 .WHERE(table.getPrimaryKeyWhere())
                 .toString();
