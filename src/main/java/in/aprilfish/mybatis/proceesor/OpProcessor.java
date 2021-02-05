@@ -87,7 +87,7 @@ public class OpProcessor extends AbstractProcessor {
     }
 
     private MethodSpec setEntity(String simpleName) {
-        return MethodSpec.methodBuilder("setEntity")
+        return MethodSpec.methodBuilder("setEntity").addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(Object.class, "obj")
                 .returns(void.class)
@@ -96,7 +96,7 @@ public class OpProcessor extends AbstractProcessor {
     }
 
     private MethodSpec isNotNull(Symbol.ClassSymbol classSymbol) throws Exception {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("isNotNull");
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("isNotNull").addAnnotation(Override.class);
 
         builder.addModifiers(Modifier.PUBLIC)
                 .addParameter(String.class, "property")
