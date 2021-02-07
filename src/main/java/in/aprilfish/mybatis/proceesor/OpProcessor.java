@@ -5,6 +5,7 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.file.BaseFileObject;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.util.Context;
 import in.aprilfish.mybatis.annotation.OpEntity;
@@ -64,6 +65,13 @@ public class OpProcessor extends AbstractProcessor {
         String clz = classSymbol.getSimpleName().toString();
         String pkg = className.substring(0, className.lastIndexOf("."));
 
+        BaseFileObject javaFileObject = (BaseFileObject) classSymbol.classfile;
+        String fullPath = javaFileObject.toUri().toString();
+        fullPath = fullPath.substring(6);
+        String javaPath = "src/main/java/" + className + ".java";
+        fullPath = fullPath.substring(0, fullPath.length() - javaPath.length());
+        fullPath += "target/generated-sources/annotations";
+
         try {
             ClassName superclass = ClassName.bestGuess(className);
             ClassName superinterface = ClassName.bestGuess("in.aprilfish.mybatis.provider.OpEntity");
@@ -80,7 +88,7 @@ public class OpProcessor extends AbstractProcessor {
             JavaFile javaFile = JavaFile.builder(pkg, opEntity)
                     .build();
 
-            generateToAnnotations(javaFile);
+            generateToAnnotations(javaFile, fullPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -147,9 +155,8 @@ public class OpProcessor extends AbstractProcessor {
         return String.valueOf(cs);
     }
 
-    private static void generateToAnnotations(JavaFile javaFile) throws IOException {
-        String targetDirectory = "./target/generated-sources/annotations";
-        File dir = new File(targetDirectory);
+    private static void generateToAnnotations(JavaFile javaFile, String path) throws IOException {
+        File dir = new File(path);
         if (!dir.exists()) dir.mkdirs();
 
         javaFile.writeTo(dir);
