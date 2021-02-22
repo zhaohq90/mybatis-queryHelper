@@ -17,6 +17,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class OpProcessor extends AbstractProcessor {
         String clz = classSymbol.getSimpleName().toString();
         String pkg = className.substring(0, className.lastIndexOf("."));
 
-        BaseFileObject javaFileObject = (BaseFileObject) classSymbol.classfile;
+        JavaFileObject javaFileObject = classSymbol.classfile;
         String fullPath = javaFileObject.toUri().toString();
         fullPath = fullPath.substring(6);
         String javaPath = "src/main/java/" + className + ".java";

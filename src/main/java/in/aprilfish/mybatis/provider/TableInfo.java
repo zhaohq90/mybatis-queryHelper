@@ -173,7 +173,8 @@ public class TableInfo {
             Class clazz= Class.forName(className);
             return (OpEntity)clazz.newInstance();
         }catch (Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println(String.format("%s OpEntity not exist, ignore",simpleName));
         }
 
         return null;
