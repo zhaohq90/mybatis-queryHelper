@@ -273,9 +273,9 @@ public class TableInfo {
             return ReflectionUtils.getFieldValue(field, entity)!=null;
         }
 
-        opEntity.setEntity(entity);
+        //opEntity.setEntity(entity);
 
-        return opEntity.isNotNull(field.getName());
+        return opEntity.isNotNull(entity, field.getName());
     }
 
 }

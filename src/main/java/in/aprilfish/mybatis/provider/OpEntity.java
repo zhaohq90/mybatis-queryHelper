@@ -1,9 +1,9 @@
 package in.aprilfish.mybatis.provider;
 
-public interface OpEntity {
+public interface OpEntity<T> {
 
-    void setEntity(Object obj);
+    //void setEntity(Object obj);
 
-    boolean isNotNull(String property);
+    boolean isNotNull(T entity, String property);
 
 }

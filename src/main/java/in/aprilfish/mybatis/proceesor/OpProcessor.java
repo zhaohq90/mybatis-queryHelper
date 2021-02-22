@@ -79,11 +79,14 @@ public class OpProcessor extends AbstractProcessor {
             FieldSpec entityField = FieldSpec.builder(superclass, "entity", Modifier.PRIVATE).build();
             TypeSpec opEntity = TypeSpec.classBuilder("Op" + clz)
                     .addModifiers(Modifier.PUBLIC)
-                    .addSuperinterface(superinterface)
-                    .superclass(superclass)
-                    .addField(entityField)
-                    .addMethod(setEntity(clz))
-                    .addMethod(isNotNull(classSymbol))
+                    //.addTypeVariable(TypeVariableName.get(clz))
+                    //.addSuperinterface(superinterface)
+                    //.addSuperinterface(ParameterizedTypeName.get(in.aprilfish.mybatis.provider.OpEntity.class, TypeVariableName.get("T"))
+                    .addSuperinterface(ParameterizedTypeName.get(superinterface, TypeVariableName.get(clz)))
+                    //.superclass(superclass)
+                    //.addField(entityField)
+                    //.addMethod(setEntity(clz))
+                    .addMethod(isNotNull(clz, classSymbol))
                     .build();
 
             JavaFile javaFile = JavaFile.builder(pkg, opEntity)
@@ -95,6 +98,7 @@ public class OpProcessor extends AbstractProcessor {
         }
     }
 
+    @Deprecated
     private MethodSpec setEntity(String simpleName) {
         return MethodSpec.methodBuilder("setEntity").addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
@@ -104,12 +108,15 @@ public class OpProcessor extends AbstractProcessor {
                 .build();
     }
 
-    private MethodSpec isNotNull(Symbol.ClassSymbol classSymbol) throws Exception {
+    private MethodSpec isNotNull(String simpleName, Symbol.ClassSymbol classSymbol) throws Exception {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("isNotNull").addAnnotation(Override.class);
 
         builder.addModifiers(Modifier.PUBLIC)
+                //.addParameter(Object.class, "obj")
+                .addParameter(TypeVariableName.get(simpleName),"entity")
                 .addParameter(String.class, "property")
                 .returns(boolean.class)
+                //.addStatement("$L entity = ($L)obj", simpleName, simpleName)
                 .addStatement("if(property==null || property.trim().equals(\"\")) return false");
 
         this.batchAddStatement(builder, classSymbol);
