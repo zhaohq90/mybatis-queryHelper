@@ -66,7 +66,7 @@ public class Example {
     /**
      * inner class Criteria
      */
-    protected class Criteria {
+    public static class Criteria {
         protected List<Criterion> criterions = new ArrayList<>();
 
         protected Criteria() {
@@ -105,72 +105,72 @@ public class Example {
             criterions.add(new Criterion(condition, value1, value2));
         }
 
-        public Criteria andIsNull(FieldPath field) {
+        public Criteria andIsNull(FieldPath<?> field) {
             addCriterion(field.getColumn() + " is null");
             return this;
         }
 
-        public Criteria andIsNotNull(FieldPath field) {
+        public Criteria andIsNotNull(FieldPath<?> field) {
             addCriterion(field.getColumn() + " is not null");
             return this;
         }
 
-        public Criteria andEqualTo(FieldPath field, Object value) {
+        public Criteria andEqualTo(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + "=", value, field.getProperty());
             return this;
         }
 
-        public Criteria andNotEqualTo(FieldPath field, Object value) {
+        public Criteria andNotEqualTo(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + "<>", value, field.getProperty());
             return this;
         }
 
-        public Criteria andGreaterThan(FieldPath field, Object value) {
+        public Criteria andGreaterThan(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + ">", value, field.getProperty());
             return this;
         }
 
-        public Criteria andGreaterThanOrEqualTo(FieldPath field, Object value) {
+        public Criteria andGreaterThanOrEqualTo(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + ">=", value, field.getProperty());
             return this;
         }
 
-        public Criteria andLessThan(FieldPath field, Object value) {
+        public Criteria andLessThan(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + "<", value, field.getProperty());
             return this;
         }
 
-        public Criteria andLessThanOrEqualTo(FieldPath field, Object value) {
+        public Criteria andLessThanOrEqualTo(FieldPath<?> field, Object value) {
             addCriterion(field.getColumn() + "<=", value, field.getProperty());
             return this;
         }
 
-        public Criteria andIn(FieldPath field, Iterable values) {
+        public Criteria andIn(FieldPath<?> field, Iterable<?> values) {
             addCriterion(field.getColumn() + " in ", values, field.getProperty());
             return this;
         }
 
-        public Criteria andNotIn(FieldPath field, Iterable values) {
+        public Criteria andNotIn(FieldPath<?> field, Iterable<?> values) {
             addCriterion(field.getColumn() + " not in ", values, field.getProperty());
             return this;
         }
 
-        public Criteria andBetween(FieldPath field, Object value1, Object value2) {
+        public Criteria andBetween(FieldPath<?> field, Object value1, Object value2) {
             addCriterion(field.getColumn() + " between", value1, value2, field.getProperty());
             return this;
         }
 
-        public Criteria andNotBetween(FieldPath field, Object value1, Object value2) {
+        public Criteria andNotBetween(FieldPath<?> field, Object value1, Object value2) {
             addCriterion(field.getColumn() + " not between", value1, value2, field.getProperty());
             return this;
         }
 
-        public Criteria andLike(FieldPath field, String value) {
+        public Criteria andLike(FieldPath<?> field, String value) {
             addCriterion(field.getColumn() + " like", value, field.getProperty());
             return this;
         }
 
-        public Criteria andNotLike(FieldPath field, String value) {
+        public Criteria andNotLike(FieldPath<?> field, String value) {
             addCriterion(field.getColumn() + " not like", value, field.getProperty());
             return this;
         }
@@ -180,7 +180,7 @@ public class Example {
     /**
      * inner class Criterion
      */
-    public class Criterion {
+    public static class Criterion {
 
         private String condition;
 
@@ -370,12 +370,12 @@ public class Example {
             return this.root;
         }
 
-        public T in(List values) {
+        public T in(List<?> values) {
             criteria.andIn(this, values);
             return this.root;
         }
 
-        public T notIn(List<Object> values) {
+        public T notIn(List<?> values) {
             criteria.andNotIn(this, values);
             return this.root;
         }

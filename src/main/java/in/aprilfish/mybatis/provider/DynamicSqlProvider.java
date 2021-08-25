@@ -1,5 +1,6 @@
 package in.aprilfish.mybatis.provider;
 
+import in.aprilfish.mybatis.example.Example;
 import in.aprilfish.mybatis.util.PlaceholderResolver;
 import in.aprilfish.mybatis.util.ReflectionUtils;
 import in.aprilfish.mybatis.util.StrKit;
@@ -7,6 +8,7 @@ import org.apache.ibatis.builder.annotation.ProviderContext;
 import org.apache.ibatis.jdbc.SQL;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,6 +213,43 @@ public class DynamicSqlProvider {
                         .map(TableInfo::assignParameter)
                         .toArray(String[]::new))
                 .toString();
+    }
+
+    public String selectByExample(Object object, ProviderContext context) {
+        Example example=(Example)object;
+        TableInfo table = tableInfo(context);
+        List<Example.Criteria> oredCriteria=example.getOredCriteria();
+        List<List<String>> oredConditions=new ArrayList<>();
+        for(Example.Criteria criteria:oredCriteria){
+            if(!criteria.isValid()) continue;
+            List<String> conditions=new ArrayList<>();
+            List<Example.Criterion> criterionList=criteria.getAllCriterions();
+            for(Example.Criterion criterion:criterionList){
+                String condition=null;
+                if(criterion.isNoValue()) condition=criterion.getCondition();
+                if(criterion.isSingleValue()) condition=String.join(" ",criterion.getCondition(),criterion.getValue().toString());
+                //todo 时间类型格式化 DATE  /DATETIME 格式
+                //in date ?
+                if(criterion.isBetweenValue()) condition=String.join(" ",criterion.getCondition(),criterion.getValue().toString(),"and",criterion.getSecondValue().toString());
+                if(criterion.isListValue()){
+                    List<?> list=(List<?>)criterion.getValue();
+                    String[] values= list.stream().map(Object::toString).toArray(String[]::new);
+                    String value=String.join("","(",String.join(",",values),")");
+                    condition=String.join(" ",criterion.getCondition(),value);
+                }
+                conditions.add(condition);
+            }
+            oredConditions.add(conditions);
+        }
+
+        SQL sql=new SQL().SELECT(String.join(",",table.getColumns())).FROM(table.getTableName());
+        for(int i=0;i<oredConditions.size();i++){
+            if(i>0) sql.OR();
+            sql.WHERE(oredConditions.get(i).toArray(new String[0]));
+        }
+        if(example.getOrderByClause()!=null) sql.ORDER_BY(example.getOrderByClause());
+
+        return sql.toString();
     }
 
 }

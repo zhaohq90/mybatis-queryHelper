@@ -5,6 +5,7 @@ import in.aprilfish.mybatis.util.SFunction;
 import in.aprilfish.mybatis.util.StrKit;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class LambdaQuery extends Example {
 
@@ -141,9 +142,9 @@ public class LambdaQuery extends Example {
         } else if (keyword.equals(SqlKeyword.LE)) {
             fieldPath.lessOrEq(vals[0]);
         } else if (keyword.equals(SqlKeyword.IN)) {
-            fieldPath.in(Arrays.asList(vals));
+            fieldPath.in((List<?>)vals[0]);
         } else if (keyword.equals(SqlKeyword.NOT_IN)) {
-            fieldPath.notIn(Arrays.asList(vals));
+            fieldPath.notIn((List<?>)vals[0]);
         } else if (keyword.equals(SqlKeyword.IS_NULL)) {
             fieldPath.isNull();
         } else if (keyword.equals(SqlKeyword.IS_NOT_NULL)) {

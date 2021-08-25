@@ -149,6 +149,7 @@ public interface CommonMapper<I, E> {
     @SelectProvider(type = DynamicSqlProvider.class, method = "countByCriteria")
     long countByCriteria(E criteria);
 
+    @SelectProvider(type = DynamicSqlProvider.class, method = "selectByExample")
     List<E> selectByExample(Example example);
 
 }
