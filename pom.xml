@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>in.aprilfish</groupId>
-    <artifactId>mybatis-queryHelper</artifactId>
-    <version>0.0.4-snapshot</version>
+    <artifactId>mybatis-dynamic-sql-processor</artifactId>
+    <version>0.0.1-snapshot</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -19,6 +19,12 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>3.5.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.dynamic-sql</groupId>
+            <artifactId>mybatis-dynamic-sql</artifactId>
+            <version>1.2.1</version>
             <scope>provided</scope>
         </dependency>
 

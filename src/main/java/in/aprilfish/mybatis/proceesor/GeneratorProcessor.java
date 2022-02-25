@@ -5,10 +5,10 @@ import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
-import com.sun.tools.javac.file.BaseFileObject;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.util.Context;
-import in.aprilfish.mybatis.annotation.OpEntity;
+import in.aprilfish.mybatis.annotation.Generator;
+import org.mybatis.dynamic.sql.BasicColumn;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -21,21 +21,22 @@ import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@SupportedAnnotationTypes("in.aprilfish.mybatis.annotation.OpEntity")
+@SupportedAnnotationTypes("in.aprilfish.mybatis.annotation.Generator")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class OpProcessor extends AbstractProcessor {
+public class GeneratorProcessor extends AbstractProcessor {
 
     private Filer mFiler;
     private Elements elementUtils;         //工具类
     private Messager messager;
     private Types types;
 
-    public static final String PATH = OpEntity.class.getCanonicalName();
+    public static final String PATH = Generator.class.getCanonicalName();
 
-    public OpProcessor() {
+    public GeneratorProcessor() {
         super();
     }
 
@@ -62,6 +63,8 @@ public class OpProcessor extends AbstractProcessor {
     public void handle(Element element) {
         if (!(element.getKind() == ElementKind.CLASS)) return;
         Symbol.ClassSymbol classSymbol = (Symbol.ClassSymbol) element;
+        Generator generator = classSymbol.getAnnotation(Generator.class);
+        String tableName = generator.name();
         String className = classSymbol.getQualifiedName().toString();
         String clz = classSymbol.getSimpleName().toString();
         String pkg = className.substring(0, className.lastIndexOf("."));
@@ -74,22 +77,35 @@ public class OpProcessor extends AbstractProcessor {
         fullPath += "target/generated-sources/annotations";
 
         try {
-            ClassName superclass = ClassName.bestGuess(className);
-            ClassName superinterface = ClassName.bestGuess("in.aprilfish.mybatis.provider.OpEntity");
-            FieldSpec entityField = FieldSpec.builder(superclass, "entity", Modifier.PRIVATE).build();
-            TypeSpec opEntity = TypeSpec.classBuilder("Op" + clz)
-                    .addModifiers(Modifier.PUBLIC)
-                    //.addTypeVariable(TypeVariableName.get(clz))
-                    //.addSuperinterface(superinterface)
-                    //.addSuperinterface(ParameterizedTypeName.get(in.aprilfish.mybatis.provider.OpEntity.class, TypeVariableName.get("T"))
-                    .addSuperinterface(ParameterizedTypeName.get(superinterface, TypeVariableName.get(clz)))
-                    //.superclass(superclass)
-                    //.addField(entityField)
-                    //.addMethod(setEntity(clz))
-                    .addMethod(isNotNull(clz, classSymbol))
-                    .build();
+            ClassName superclass = ClassName.bestGuess("org.mybatis.dynamic.sql.SqlTable");
+            ClassName supportClass = ClassName.bestGuess(className + "Support");
 
-            JavaFile javaFile = JavaFile.builder(pkg, opEntity)
+            FieldSpec supportField = FieldSpec.builder(supportClass, "SUPPORT", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL).initializer(String.format("new %sSupport()", clz)).build();
+
+            TypeSpec.Builder builder = TypeSpec.classBuilder(clz + "Support")
+                    .addModifiers(Modifier.PUBLIC)
+                    .superclass(superclass)
+                    .addField(supportField)
+                    .addMethod(constructor(tableName));
+
+            List<Symbol.VarSymbol> varSymbolList = this.getMember(Symbol.VarSymbol.class, ElementKind.FIELD, classSymbol);
+            List<String> columnNameList = new ArrayList<>();
+            for (Symbol.VarSymbol symbol : varSymbolList) {
+                String type = symbol.type.toString();
+                String typePkg = type.substring(0, type.lastIndexOf("."));
+                String typeClz = type.substring(type.lastIndexOf(".") + 1);
+                TypeName typeName = ParameterizedTypeName.get(ClassName.get("org.mybatis.dynamic.sql", "SqlColumn"), ClassName.get(typePkg, typeClz));
+                FieldSpec columnField = FieldSpec.builder(typeName, symbol.name.toString(), Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL).initializer(String.format("SUPPORT.column(\"%s\")", symbol.name.toString())).build();
+                builder.addField(columnField);
+                columnNameList.add(symbol.name.toString());
+            }
+            TypeName basicColumnTypeName = ArrayTypeName.of(BasicColumn.class);
+            FieldSpec basicColumnField = FieldSpec.builder(basicColumnTypeName, "selectList", Modifier.PUBLIC, Modifier.STATIC).initializer(String.format("BasicColumn.columnList(%s)", String.join(",", columnNameList.toArray(new String[0])))).build();
+            builder.addField(basicColumnField);
+
+            builder.addMethod(insertAllColumns(pkg, clz, columnNameList));
+
+            JavaFile javaFile = JavaFile.builder(pkg, builder.build())
                     .build();
 
             generateToAnnotations(javaFile, fullPath);
@@ -98,41 +114,28 @@ public class OpProcessor extends AbstractProcessor {
         }
     }
 
-    @Deprecated
-    private MethodSpec setEntity(String simpleName) {
-        return MethodSpec.methodBuilder("setEntity").addAnnotation(Override.class)
+    private static MethodSpec constructor(String tableName) {
+        return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(Object.class, "obj")
-                .returns(void.class)
-                .addStatement("this.entity = ($L)obj", simpleName)
+                .addStatement("super(\"$N\")", tableName)
                 .build();
     }
 
-    private MethodSpec isNotNull(String simpleName, Symbol.ClassSymbol classSymbol) throws Exception {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("isNotNull").addAnnotation(Override.class);
+    private MethodSpec insertAllColumns(String typePkg, String typeClz, List<String> columnNameList) throws Exception {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("insertAllColumns");
+        TypeName typeName = ParameterizedTypeName.get(ClassName.get("org.mybatis.dynamic.sql.insert", "InsertDSL"), ClassName.get(typePkg, typeClz));
 
-        builder.addModifiers(Modifier.PUBLIC)
+        builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 //.addParameter(Object.class, "obj")
-                .addParameter(TypeVariableName.get(simpleName),"entity")
-                .addParameter(String.class, "property")
-                .returns(boolean.class)
-                //.addStatement("$L entity = ($L)obj", simpleName, simpleName)
-                .addStatement("if(property==null || property.trim().equals(\"\")) return false");
+                .addParameter(typeName, "dsl")
+                .returns(typeName);
 
-        this.batchAddStatement(builder, classSymbol);
-
-        builder.addStatement("return false");
+        for (String columnName : columnNameList) {
+            builder.addStatement("dsl.map($N).toProperty(\"$N\")", columnName, columnName);
+        }
+        builder.addStatement("return dsl");
 
         return builder.build();
-    }
-
-    private void batchAddStatement(MethodSpec.Builder builder, Symbol.ClassSymbol classSymbol) throws Exception {
-        List<Symbol.VarSymbol> varSymbolList = this.getMember(Symbol.VarSymbol.class, ElementKind.FIELD, classSymbol);
-        for (Symbol.VarSymbol symbol : varSymbolList) {
-            builder.beginControlFlow("if(property.equals(\"$L\"))", symbol.name);
-            builder.addStatement("return entity.get$L()!=null", captureName(symbol.name.toString()));
-            builder.endControlFlow();
-        }
     }
 
     private <T extends Symbol> List<T> getMember(Class<T> type, ElementKind kind, Symbol classSymbol) {
@@ -153,14 +156,10 @@ public class OpProcessor extends AbstractProcessor {
         if (classSymbol.type.getEnclosingType() != null && classSymbol.hasOuterInstance()) {
             results.addAll(getMember(type, kind, classSymbol.type.getEnclosingType().asElement()));
         }
-        return results;
-    }
 
-    //首字母大写
-    private String captureName(String name) {
-        char[] cs = name.toCharArray();
-        cs[0] -= 32;
-        return String.valueOf(cs);
+        Collections.reverse(results);
+
+        return results;
     }
 
     private static void generateToAnnotations(JavaFile javaFile, String path) throws IOException {
